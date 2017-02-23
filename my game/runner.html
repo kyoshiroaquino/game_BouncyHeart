@@ -1,0 +1,66 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+	<title>Phaser - Making your first game, part 2</title>
+	<script type="text/javascript" src="../ELLIS  FILES/GAME DEVELOPMENT/lectures-master/phaser/activity/phaser codes/js/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+	<script type="text/javascript">
+
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var player, player2,
+	keyboard;
+
+function preload() {
+	game.load.spritesheet('girl','assets/girl.png', 210,370);
+    game.load.image('forest', 'assets/forest.png');
+    game.load.spritesheet('dude', 'assets/dude.png', 185, 320);
+
+}
+
+function create() {
+	
+	game.add.sprite(0,0,'forest');
+	player = game.add.sprite(80,230,'dude');
+	game.physics.enable(player);
+	player.body.collideWorldBounds = true;
+	
+	player2 = game.add.sprite(500,200,'girl');
+	game.physics.enable(player2);
+	player2.body.collideWorldBounds = true;
+	
+	player.animations.add('walk-right',[0,1,2,3,4,5,6,7],8,true);
+	player.animations.add('walk-left',[4,3,2,1],5,true);
+	
+	player2.animations.add('walk-right',[0,2,1],1,true);
+	keyboard = game.input.keyboard.createCursorKeys();
+}
+
+function update() {
+
+	if(keyboard.right.isDown){
+			player.body.velocity.x = 70;
+		player.animations.play('walk-right');
+		player2.animations.play('walk-right');
+			
+}
+	else if(keyboard.left.isDown){
+		player.animations.play('walk-left');
+			player.body.velocity.x = -50;
+}
+	else { player.animations.stop();
+			player.body.velocity.x = 0;
+		  
+}
+}
+
+</script>
+
+</body>
+</html>
