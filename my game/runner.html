@@ -17,22 +17,31 @@ var h = 600;
 var game = new Phaser.Game(w, h, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 var player, forest;
 var	keyboard;
-var fruit;
-var fruits;
+var fruit, fruits;
 var platform;
 var scoreText, score = 0;
+var timer = 0;
+var loadingJump = false;
+var bat, bats;
+var gameoverText;
+
 function preload() {
 	//game.load.spritesheet('girl','assets/girl.png', 210,370);
     game.load.image('forest', 'assets/forest.png');
     game.load.spritesheet('dude', 'assets/hero.png', 246, 280);
 	game.load.image('fruit','assets/fruit.png');
 	game.load.image('ledge','assets/jumpground.png');
+	game.load.spritesheet('bat','assets/bat.png',500,260);
+	}
 	
-}
 function create() {
+	gameoverText = game.add.text(w/2,h/2,'Gameover');
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 	forest = game.add.tileSprite(0,0,800,600,'forest');
 	player = game.add.sprite(10,230,'dude');
+	
+	
+	
 
 	game.physics.enable(player);
 	player.body.collideWorldBounds = true;
@@ -51,66 +60,117 @@ function create() {
 	platform.scale.x = 0.2;
 	platform.scale.y = 0.1;
 	
-	createFruits(1000);
+	//gameText.add.text(w/2-100, h/2, '');	
+	
+	createFruits(10000);
+	
 	
 	
 	fruit = game.add.group();
 	fruit.enableBody = true;
 	game.physics.enable(fruit);
 	
+	
+	createBats(6000);
+	
+	bat = game.add.group();
+	bat.enableBody = true;
+	game.physics.enable(bat);
+	
+	
 	scoreText = game.add.text(w-200,50,'Score = 0');
 	
 	
 }
 function update() {
+
 	keyboard = game.input.keyboard.createCursorKeys();
 	game.physics.arcade.overlap(player, fruit, killFruit);
 	game.physics.arcade.collide(player, fruit);
 	game.physics.arcade.collide(fruit, platform);
 	game.physics.arcade.collide(player, platform);
+	game.physics.arcade.overlap(player, bat, killPlayer);
+
+	
+	
 	
 	if(keyboard.right.isDown){
-		
-		fruits.body.velocity.x -=3;
 	    forest.tilePosition.x -= 6;
-		player.body.velocity.x = 0;
+		player.body.velocity.x = 1.0;
 		player.animations.play('walk-right');
 		platform.body.velocity.x -=1;
+		
+
+		
 }
 	else if(keyboard.left.isDown){
 		forest.tilePosition.x += 1;
 		player.animations.play('walk-left');
 			player.body.velocity.x = -50;
 }
-	else { player.animations.stop();
-			
+	else { 
+			player.animations.stop();
 			player.body.velocity.x = 0;
-		  	player.frame = 7;
-		  
+		  	player.frame = 7;		  
 }
-	if(keyboard.up.isDown){
-		
-		player.body.velocity.y = -200;
-			
+	
+	if(keyboard.up.isDown ){
+		loadingJump = true;
+		timer += game.time.elapsed;
 		player.animations.stop();
 		player.frame = 1;
 }
-}
-function createFruits(time){
+	else if(loadingJump == true){
+		if (timer < 300){
+		player.body.velocity.y -=450;
+		}
+		else { player.body.gravity.y = 1000;
+		}
+
+		loadingJump = false;
+		timer = 0;
+		
+	}
+
+	
+ 	} 
+	function createFruits(time){
 			setInterval(function(){
-			fruits = fruit.create(Math.random()*w,-10,'fruit');
-			fruits.body.gravity.y = 1000;
+			fruits = fruit.create(w+150,450,'fruit');
 			fruits.scale.x = 0.3;
 			fruits.scale.y = 0.4;
 			fruits.body.collideWorldBounds = false;
+			fruits.body.gravity.x -=10;
 		
 	},time);
+
 }
 	function killFruit(player, fruit){
 		score = score + 5;
 		scoreText.text = 'Score ='+score;
 		fruit.kill();	
+	
+}
+	function createBats(time){
+		setInterval(function(){
+		bats = bat.create(w+10,460,'bat');
+		bats.body.collideWorldBounds = false;
+		bats.body.gravity.x -=10;
+		bats.scale.x = 0.3;
+		bats.scale.y = 0.3;
+		bats.animations.add('fly',[0,1,2],9,true);
+		bats.animations.play('fly');
+		},time);
 	}
+	
+	function killPlayer(player, bat){
+	
+		gameoverText.text = 'GAMEOVER';
+		gameoverText.text.visible = true;
+		game._paused = true;
+		}
+		
+	
 </script>
 
 </body>
