@@ -18,31 +18,32 @@ var game = new Phaser.Game(w, h, Phaser.AUTO, '', { preload: preload, create: cr
 var player, forest;
 var	keyboard;
 var fruit, fruits;
-var platform;
+var platform, platforms, platform1, platforms1;
 var scoreText, score = 0;
 var timer = 0;
 var loadingJump = false;
 var bat, bats;
 var gameoverText;
-
+var logo;
 function preload() {
 	//game.load.spritesheet('girl','assets/girl.png', 210,370);
     game.load.image('forest', 'assets/forest.png');
     game.load.spritesheet('dude', 'assets/hero.png', 246, 280);
 	game.load.image('fruit','assets/fruit.png');
-	game.load.image('ledge','assets/jumpground.png');
+	game.load.image('platform','assets/jumpground.png');
+	game.load.image('platform1','assets/jumpground.png');
+	game.load.image('logo','assets/logo.png');
 	game.load.spritesheet('bat','assets/bat.png',500,260);
 	}
 	
 function create() {
-	gameoverText = game.add.text(w/2,h/2,'Gameover');
+	
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 	forest = game.add.tileSprite(0,0,800,600,'forest');
 	player = game.add.sprite(10,230,'dude');
 	
 	
 	
-
 	game.physics.enable(player);
 	player.body.collideWorldBounds = true;
 	player.scale.x = 0.6;
@@ -54,12 +55,10 @@ function create() {
 	player.animations.add('walk-right',[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],15,true);
 	player.animations.add('walk-left',[4,3,2,1],5,true);
 	
-	platform = game.add.sprite(400,300,'ledge');
-	game.physics.arcade.enable(platform);
-	platform.body.immovable = true;
-	platform.scale.x = 0.2;
-	platform.scale.y = 0.1;
 	
+	logo = game.add.sprite(150,200,'logo');
+	
+	//gameoverText = game.add.text(w/2,h/2,'Gameover');
 	//gameText.add.text(w/2-100, h/2, '');	
 	
 	createFruits(10000);
@@ -77,36 +76,56 @@ function create() {
 	bat.enableBody = true;
 	game.physics.enable(bat);
 	
+	createPlatforms(10000);
+	
+	platform = game.add.group();
+	platform.enableBody = true;
+	game.physics.enable(platform);
+	
+	createPlatforms1(20000);
+	
+	platform1 = game.add.group();
+	platform1.enableBody = true;
+	game.physics.enable(platform1);
+	
+	
+	
 	
 	scoreText = game.add.text(w-200,50,'Score = 0');
 	
 	
+	  
+	
 }
+
 function update() {
+	
 
 	keyboard = game.input.keyboard.createCursorKeys();
 	game.physics.arcade.overlap(player, fruit, killFruit);
 	game.physics.arcade.collide(player, fruit);
 	game.physics.arcade.collide(fruit, platform);
 	game.physics.arcade.collide(player, platform);
-	game.physics.arcade.overlap(player, bat, killPlayer);
-
+	game.physics.arcade.collide(player, bat, killBat);
+	game.physics.arcade.collide(player, platform1);
 	
 	
+ 	
 	
 	if(keyboard.right.isDown){
 	    forest.tilePosition.x -= 6;
 		player.body.velocity.x = 1.0;
 		player.animations.play('walk-right');
-		platform.body.velocity.x -=1;
-		
-
+		logo.kill();	
 		
 }
-	else if(keyboard.left.isDown){
+	
+		
+	 else if(keyboard.left.isDown){
 		forest.tilePosition.x += 1;
 		player.animations.play('walk-left');
 			player.body.velocity.x = -50;
+			
 }
 	else { 
 			player.animations.stop();
@@ -119,6 +138,7 @@ function update() {
 		timer += game.time.elapsed;
 		player.animations.stop();
 		player.frame = 1;
+		
 }
 	else if(loadingJump == true){
 		if (timer < 300){
@@ -126,12 +146,10 @@ function update() {
 		}
 		else { player.body.gravity.y = 1000;
 		}
-
 		loadingJump = false;
 		timer = 0;
 		
 	}
-
 	
  	} 
 	function createFruits(time){
@@ -143,7 +161,6 @@ function update() {
 			fruits.body.gravity.x -=10;
 		
 	},time);
-
 }
 	function killFruit(player, fruit){
 		score = score + 5;
@@ -163,11 +180,33 @@ function update() {
 		},time);
 	}
 	
-	function killPlayer(player, bat){
+	function createPlatforms(time){
+		setInterval(function(){
+		platforms = platform.create(w+5,400,'platform');
+		platforms.body.collideWorldBounds = false;
+		platforms.body.gravity.x -=10;
+		platforms.body.immovable = true;
+	    platforms.scale.x = 0.2;
+	    platforms.scale.y = 0.1;
+		},time);
+		}
+		
+	function createPlatforms1(time){
+		setInterval(function(){
+		platforms1 = platform1.create(h+1,10,'platform1');
+		platforms1.body.collideWorldBounds = false;
+		platforms1.body.gravity.y =10;
+		platforms1.body.gravity.x -=9;
+		platforms1.body.immovable = true;
+		platforms1.scale.x = 0.2;
+		platforms1.scale.y = 0.1;
+		},time);
+		}
 	
-		gameoverText.text = 'GAMEOVER';
-		gameoverText.text.visible = true;
-		game._paused = true;
+	function killBat(player, bat){
+		bat.animations.stop();
+		bat.frame = 3;
+		bat.body.gravity.y = 1000;
 		}
 		
 	
