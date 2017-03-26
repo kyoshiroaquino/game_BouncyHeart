@@ -18,7 +18,7 @@ var game = new Phaser.Game(w, h, Phaser.AUTO, '', { preload: preload, create: cr
 var player, forest;
 var	keyboard;
 var fruit, fruits;
-var platform, platforms, platform1, platforms1,ground, btnLeft, btnRight, btnJump;
+var platform, platforms, platform1, platforms1,ground, btnLeft, btnRight, btnJump, btnRestart, restart;
 var scoreText, bestText,score = 0;
 var timer = 0;
 var loadingJump = false;
@@ -27,6 +27,7 @@ var logo;
 var stone, stones;
 var bounds = 10000;
 var bounds1;
+var pad;
 function preload() {
 	//game.load.spritesheet('girl','assets/girl.png', 210,370);
     game.load.image('forest', 'assets/forest.png');
@@ -40,6 +41,9 @@ function preload() {
 	game.load.image('logo','assets/logo.png');
 	game.load.spritesheet('btnJump','assets/buttonright.png',255,80);
 	game.load.spritesheet('bat','assets/bat.png',500,260);
+	game.load.image('lives','assets/live.png');
+	game.load.image('restart','assets/restart.png');
+	game.load.image('pad','assets/pad2.png');
 	}
 	
 function create() {
@@ -58,8 +62,12 @@ function create() {
 	ground.scale.x = 10;
 	
 	
+	
+	
+	
 	game.physics.enable(player);
 	player.body.collideWorldBounds = true;
+	//player.body.checkCollision.down = true;
 	player.scale.x = 0.6;
 	player.scale.y = 0.6;
 		
@@ -70,15 +78,21 @@ function create() {
 	player.animations.add('walk-left',[4,3,2,1],5,true);
 	
 	
+	pad = game.add.button(0,0,'pad' ,goRight);
+	pad.scale.x = bounds;
+	pad.scale.y = 1.8;
 	
 	btnJump = game.add.button(20,10,'btnJump',goJump);
 	btnJump.scale.x = 0.3;
 	btnJump.scale.y = 0.6;
 	
-	
+	btnRestart = game.add.button(350, 30,'restart', ulit);
+	btnRestart.scale.x = 0.4;
+	btnRestart.scale.y = 0.4;
 	
 	
 	logo = game.add.sprite(150,200,'logo');
+	
 	
 	
 	
@@ -100,6 +114,7 @@ function create() {
 	platform = game.add.group();
 	platform.enableBody = true;
 	game.physics.enable(platform);
+	
 	
 	createPlatforms1(4000);
 	
@@ -125,25 +140,29 @@ function create() {
 	bestText= game.add.text(w-200,60,'Best ='+getBest());
 	
 	gameText = game.add.text(w/2-100,h/2,'',{fill:'white'});
-	gameText.scale.y = 1;
-	gameText.scale.x = 1;
+	gameText.scale.y = 2;
+	gameText.scale.x = 2;
 
+	
+	
 	
 	
 	game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
-
 	
+	btnRestart.fixedToCamera = true;
 	scoreText.fixedToCamera = true;
 	bestText.fixedToCamera = true;
 	gameText.fixedToCamera = true;
 	btnJump.fixedToCamera = true;
-	
-	
+	livesText.fixedToCamera = true;
+
+
+	game.input.addPointer();
+
+
 }
 
 function update() {
-	
-
 	keyboard = game.input.keyboard.createCursorKeys();
 	game.physics.arcade.overlap(player, fruit, killFruit);
 	game.physics.arcade.collide(player, fruit);
@@ -152,26 +171,24 @@ function update() {
 	game.physics.arcade.collide(player,ground);
 	game.physics.arcade.collide(player, bat, killBat);
 	game.physics.arcade.collide(player, platform1);
-	game.physics.arcade.overlap(player, stone, killPlayer);
+	game.physics.arcade.overlap(player, stone, hurtPlayer);
 	
-	
- 	
 	
 	if(keyboard.right.isDown){
 	    forest.tilePosition.x -= 6;
-		player.body.velocity.x = 100;
+		player.body.velocity.x = 145;
 		player.animations.play('walk-right');
 		logo.kill();	
 		
 }
 	
 		
-	 else if(keyboard.left.isDown){
-		forest.tilePosition.x += 6;
-		player.animations.play('walk-left');
-			player.body.velocity.x = 70;
+	// else if(keyboard.left.isDown){
+		//forest.tilePosition.x += 6;
+		//player.animations.play('walk-left');
+			//player.body.velocity.x = 70;
 			
-}
+
 	else { 
 			player.animations.stop();
 			player.body.velocity.x = 0;
@@ -195,8 +212,9 @@ function update() {
 		timer = 0;
 		
 	}
-	
- 	} 
+}
+ 
+ 
 	function createFruits(time){
 			setInterval(function(){
 			fruits = fruit.create(Math.random()*bounds,450,'fruit');
@@ -231,6 +249,8 @@ function update() {
 		setInterval(function(){
 		platforms = platform.create(Math.random()*bounds,450,'platform');
 		platforms.body.collideWorldBounds = false;
+		platforms.body.checkCollision.up = true;
+		platforms.body.checkCollision.down = false;
 		platforms.body.immovable = true;
 	    platforms.scale.x = 0.2;
 	    platforms.scale.y = 0.1;
@@ -253,7 +273,7 @@ function update() {
 		setInterval(function(){
 		stones = stone.create(Math.random() * bounds, 510, 'stone');
 		stones.body.collideWorldBounds = false;
-		stones.body.velocity.x -=100;
+		stones.body.velocity.x -=200;
 		stones.scale.x = 0.5;
 		stones.scale.y = 0.5;
 		stones.animations.add('roll',[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],20,true);
@@ -261,20 +281,20 @@ function update() {
 		},time);
 		}
 	
-	function killPlayer(player,stone){
+	function hurtPlayer(player,stone){
+		player.kill();
 		gameText.text = 'GAMEOVER';
-		game._paused = true;
-		
-	}
-	
+		game.paused = true;
+		}
 	
 	
 	function killBat(player, bat){
 		bat.animations.stop();
 		bat.frame = 3;
 		bat.body.gravity.y = 1000;
+	
 		} 
-
+		
 	function goJump(){
 		if(player.body.touching.down){
 		loadingJump = true;
@@ -287,7 +307,17 @@ function update() {
 		btnJump.frame = 0;
 		},100);	
 		
-}
+		}
+	
+	function ulit(){
+		window.location.href = window.location.href;
+		}
+		
+	function goRight(){
+		player.animations.play('walk-right');
+		player.body.velocity.x = 145;
+		}
+
 
 
 	function saveBest(value){
